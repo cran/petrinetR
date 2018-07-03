@@ -12,5 +12,8 @@
 
 
 enabled_transition <- function(PN,transition) {
-	all(pre_set(PN, transition) %in% PN$marking)
+	if(transition %>% is_transition(PN))
+		return(all(pre_set(PN, transition) %in% PN$marking))
+	else
+		return(F)
 }

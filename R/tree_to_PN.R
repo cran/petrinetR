@@ -4,28 +4,68 @@
 #' @description Create of petri net from a process tree.
 #'
 #' @param tree The process tree to be converted
-#' @param name A name, which will be used to indicated the start and end transitions of the petri net.
 #'
 #' @export tree_to_PN
 
 
 
 
-tree_to_PN <- function(tree, name) {
+tree_to_PN <- function(tree) {
 	if(is.null(tree$children)) {
-		return(sequence_to_PN(tree$name, name))
+		return(sequence_to_PN(tree$name, tree$name))
 	}
 	else {
 		child_nets <- list()
 		for(i in 1:length(tree$children)) {
-			child_nets[[i]] <- Recall(tree$children[[i]], name = tree$children[[i]]$name)
+			child_nets[[tree$children[[i]]$name]] <- Recall(tree$children[[i]])
 		}
 
-		if(grepl("choice", tree$name)){
+
+		start_places <- paste0("start_", names(child_nets))
+		end_places <- paste0("end_", names(child_nets))
+
+
+		if(grepl("xorLoop", tree$name)) {
 			child_nets %>%
 				lapply(places) %>%
 				bind_rows() %>%
-				mutate(id = ifelse(grepl("start_", id), paste0("start_",tree$name), paste0("end_",tree$name))) %>%
+				mutate(id = ifelse(id == paste0("start_", tree$children[[1]]$name), paste0("start_do_", tree$name), id),
+					   id = ifelse(id == paste0("end_", tree$children[[1]]$name), paste0("end_do_", tree$name), id),
+					   id = ifelse(id == paste0("start_", tree$children[[2]]$name), paste0("end_do_", tree$name), id),
+					   id = ifelse(id == paste0("end_", tree$children[[2]]$name), paste0("start_do_", tree$name), id),
+					   id = ifelse(id == paste0("start_", tree$children[[3]]$name), paste0("end_do_", tree$name), id),
+					   id = ifelse(id == paste0("end_", tree$children[[3]]$name), paste0("end_", tree$name), id)) %>%
+				bind_rows(data.frame(id = paste0("start_", tree$name))) %>%
+				unique -> places
+
+			child_nets %>%
+				lapply(transitions) %>%
+				bind_rows() %>%
+				bind_rows(data.frame(id = paste0("inv_start_", tree$name))) %>%
+				unique -> transitions
+
+			child_nets %>%
+				lapply(flows) %>%
+				bind_rows() %>%
+				mutate(from = ifelse(from == paste0("start_", tree$children[[1]]$name), paste0("start_do_", tree$name), from),
+					   from = ifelse(from == paste0("start_", tree$children[[2]]$name), paste0("end_do_", tree$name), from),
+					   from = ifelse(from == paste0("start_", tree$children[[3]]$name), paste0("end_do_", tree$name), from)) %>%
+				mutate(to = ifelse(to == paste0("end_", tree$children[[1]]$name), paste0("end_do_", tree$name),to),
+					   to = ifelse(to == paste0("end_", tree$children[[2]]$name),paste0("start_do_", tree$name), to),
+					   to = ifelse(to == paste0("end_", tree$children[[3]]$name), paste0("end_", tree$name), to)) %>%
+				bind_rows(data.frame(from = paste0("start_", tree$name), to = paste0("inv_start_", tree$name)),
+						  data.frame(from = paste0("inv_start_", tree$name), to = paste0("start_do_", tree$name))) %>%
+				unique() -> flows
+
+			return(create_PN(places, transitions, flows, paste0("start_", tree$name)))
+
+		}
+		else if(grepl("xor", tree$name) & !grepl("xorLoop", tree$name)){
+			child_nets %>%
+				lapply(places) %>%
+				bind_rows() %>%
+				mutate(id = ifelse(id %in% start_places, paste0("start_",tree$name), id),
+					   id = ifelse(id %in% end_places, paste0("end_",tree$name), id)) %>%
 				unique -> places
 			child_nets %>%
 				lapply(transitions) %>%
@@ -33,10 +73,10 @@ tree_to_PN <- function(tree, name) {
 			child_nets %>%
 				lapply(flows) %>%
 				bind_rows() %>%
-				mutate(from = ifelse(grepl("start_", from), paste0("start_",tree$name), ifelse(grepl("end_", from), paste0("end_",tree$name), from)),
-					   to = ifelse(grepl("start_", to), paste0("start_",tree$name), ifelse(grepl("end_", to),paste0("end_",tree$name), to))) -> flows
+				mutate(from = ifelse(from %in% start_places, paste0("start_",tree$name), ifelse(from %in% end_places, paste0("end_",tree$name), from)),
+					   to = ifelse(to %in% start_places, paste0("start_",tree$name), ifelse(to %in% end_places, paste0("end_",tree$name), to))) -> flows
 			return(create_PN(places, transitions, flows, paste0("start_",tree$name)))
-		} else if(grepl("parallel", tree$name )) {
+		} else if(grepl("and", tree$name )) {
 			child_nets %>%
 				lapply(places) %>%
 				bind_rows() -> places
@@ -86,14 +126,14 @@ tree_to_PN <- function(tree, name) {
 
 			places %>% unique() -> places
 			oldname <- paste0("^start_",tree$children[[1]]$name, "$")
-			places %>% mutate(id = gsub(oldname, "start", id)) -> places
-			flows %>% mutate(from = gsub(oldname, "start", from)) -> flows
+			places %>% mutate(id = gsub(oldname, paste0("start_",tree$name), id)) -> places
+			flows %>% mutate(from = gsub(oldname, paste0("start_",tree$name), from)) -> flows
 
 			oldname <- paste0("^end_",tree$children[[length(tree$children)]]$name, "$")
-			places %>% mutate(id = gsub(oldname, "end", id)) -> places
-			flows %>% mutate(to = gsub(oldname, "end", to)) -> flows
+			places %>% mutate(id = gsub(oldname, paste0("end_",tree$name), id)) -> places
+			flows %>% mutate(to = gsub(oldname, paste0("end_",tree$name), to)) -> flows
 
-			return(create_PN(places, transitions, flows, "start"))
+			return(create_PN(places, transitions, flows, paste0("start_",tree$name)))
 		}
 	}
 }

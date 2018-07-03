@@ -11,7 +11,9 @@ visNetwork_from_PN <- function(PN) {
 		PN$places %>% mutate(shape = "dot"),
 		PN$transitions %>% mutate(shape = "square")
 	) %>% suppressWarnings()
-	edges <- PN$flows
+	edges <- PN$flows %>%
+		mutate(arrows = "to")
+
 	if(!is.null(marking(PN))){
 		nodes %>% mutate(color = ifelse(id %in% marking(PN), "darkred", NA)) -> nodes
 	}

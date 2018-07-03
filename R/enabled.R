@@ -9,14 +9,23 @@
 
 
 enabled <- function(PN) {
-	(PN$transitions %>% mutate(enabled = id %>% sapply(enabled_transition, PN = PN)) %>%
-	 	filter(enabled == TRUE)) -> output
 
-	output %>% filter(grepl("inv_", id) | grepl("tau", id)) -> enabled_inv
+	PN %>%
+		transitions %>%
+		mutate(enabled = (id %>% sapply(enabled_transition, PN = PN))) %>%
+		filter(enabled == TRUE) -> output
+
+	output %>%
+		filter(grepl("inv_", id) | grepl("tau", id)) -> enabled_inv
+
 	if(nrow(enabled_inv) > 0) {
 		for(i in 1:nrow(enabled_inv)){
-			execute(PN, enabled_inv$id[i]) %>% enabled %>% mutate(by = enabled_inv$id[i]) %>% bind_rows(output %>% filter( id != enabled_inv$id[i]), .) -> output
+			execute(PN, enabled_inv$id[i]) %>%
+				enabled %>%
+				mutate(by = enabled_inv$id[i]) %>%
+				bind_rows(output, .) -> output
 		}
 	}
-	output %>% return()
+
+	output %>% unique %>% return()
 }

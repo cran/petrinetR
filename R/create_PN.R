@@ -22,5 +22,8 @@ create_PN <- function(places,transitions,flows, marking) {
 	PN$transitions <- data.frame(id = transitions, stringsAsFactors = F)
 	PN$flows <- flows
 	PN$marking <- marking
+
+	class(PN) <- "petrinet"
+
 	return(PN)
 }

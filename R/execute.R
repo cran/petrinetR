@@ -17,7 +17,7 @@ execute <- function(PN, transition){
 		return(PN)
 	}
 	else if(transition %in% enabled(PN)$id) {
-		PN %>% execute(enabled(PN)$by[transition == enabled(PN)$id]) %>% execute(transition) %>% return()
+		PN %>% execute(enabled(PN)$by[transition == enabled(PN)$id][1] ) %>% execute(transition) %>% return()
 	}
 	else
 		return(FALSE)

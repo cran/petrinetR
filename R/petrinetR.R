@@ -9,6 +9,7 @@
 #'
 #' @import dplyr
 #' @import visNetwork
+#' @import DiagrammeR
 
 
 globalVariables(c(".", "from","to"))
