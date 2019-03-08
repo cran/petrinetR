@@ -1,5 +1,5 @@
-f5780a91f4a6089258eda72d0b681ad9 *DESCRIPTION
-24bb6fa18ae00a8d99d32ac1fa9fdf3e *NAMESPACE
+cd7a2c9f4aa6e6bf876ee773f25a4a9d *DESCRIPTION
+683a7380f52ff660ca6f076ef0ead0ff *NAMESPACE
 115f8a3094dda80428a11c8ca3a97489 *NEWS.md
 cc68b3a341edb995cde7f6d64eae3002 *R/create_PN.R
 8b54f7bb863e2f68abbfdd7fdf5e5608 *R/enabled.R
@@ -10,8 +10,8 @@ fc85c809504e2b97c1e14ff32b4e5275 *R/flows.R
 ac1d7ad9c7b5fc6ed18e0cb3e755b18d *R/is_transition.R
 fb1ccf8e71205623d3ef7c3cd566ecfc *R/marking.R
 65648db97749b47865b828c8831e03f1 *R/parallel_to_PN.R
-3975b47e55797d7a808a87ed544cff83 *R/parse.R
-abf597f6059ad5129ea53c6dfc29234f *R/parsel.R
+0fbfc191614fb788966bb6cb30b681a3 *R/parse_trace.R
+176d86e6f5fecb90458e0d3bc2a0a785 *R/parsel_trace.R
 3738f6e17b5b9a723055c732e256ec8f *R/part_of.R
 d78d6146e75c86da39c677263b8791a9 *R/petrinetR.R
 62380f5b8b79a78de7c966aefb1a3853 *R/places.R
@@ -35,8 +35,8 @@ d42595876c17f4d7ecf7b7d0f07532db *man/flows.Rd
 54ee387882db320ba65530a03959bcd4 *man/is_place.Rd
 87f893d1cead307e832040966da7276c *man/is_transition.Rd
 1cdaba633e3db741158b9f14f0ba9c87 *man/marking.Rd
-338503388e808c42173c2501ec637380 *man/parse.Rd
-3caa2d885f26d4ba2dc5d4b6df42fc5c *man/parsel.Rd
+b89e8500794ad94e910c129c2d80def1 *man/parse_trace.Rd
+9da915a12c4e5ce72c22d2468dda773c *man/parsel_trace.Rd
 5c4ffa3854750067f071077d0dee726f *man/part_of.Rd
 729cf67cb59c580500ee0e8bafe39822 *man/petrinetR.Rd
 9a2dd3105160546090ae389ef957f737 *man/places.Rd
