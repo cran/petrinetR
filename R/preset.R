@@ -3,12 +3,15 @@
 #'
 #' @description Get the preset of a transition or place in a Petri Net
 #'
-#' @param PN A Petri Net
-#' @param node A place or transition in the petri net
+#' @param node \code{\link{character}} of length one: the node id for which to get the postset.
+#' @inheritParams flows
 #'
 #' @export pre_set
 
-
 pre_set <- function(PN, node) {
-	(PN$flows %>% filter(to == node))$from %>% return()
+	UseMethod("pre_set")
+}
+
+pre_set.petrinet <- function(PN, node) {
+	(flows(PN) %>% filter(to == node))$from %>% return()
 }

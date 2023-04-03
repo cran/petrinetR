@@ -10,10 +10,11 @@
 
 
 
-
-
 parse_trace <- function(PN, trace) {
 
+	lifecycle::deprecate_warn(
+		when = "0.3.0",
+		what = "parse_trace()")
 
 	if(length(trace) == 0)
 		return(PN)

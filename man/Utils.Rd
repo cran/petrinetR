@@ -5,7 +5,6 @@
 \alias{n_transitions}
 \alias{n_flows}
 \alias{n_nodes}
-\alias{nodes}
 \alias{rename_transitions}
 \alias{rename_places}
 \alias{add_places}
@@ -21,17 +20,15 @@ n_flows(PN)
 
 n_nodes(PN)
 
-nodes(PN)
-
 rename_transitions(PN, .f, ...)
 
 rename_places(PN, .f, ...)
 
-add_places(PN, .p)
+add_places(PN, places)
 
-add_transitions(PN, .t)
+add_transitions(PN, transitions)
 
-add_flows(PN, .flows)
+add_flows(PN, flows)
 }
 \arguments{
 \item{PN}{A petri net}
@@ -40,11 +37,11 @@ add_flows(PN, .flows)
 
 \item{...}{Additional arguments}
 
-\item{.p}{A character vector of places}
+\item{places}{\code{data.frame} or \code{tibble} of places, with columns id and label. Both columns should be characters.}
 
-\item{.t}{A character vector of transitions}
+\item{transitions}{\code{data.frame} or \code{tibble} of transitions, with columns id and label. Both columns should be characters.}
 
-\item{.flows}{A data.frame with a to and from column}
+\item{flows}{\code{data.frame} or \code{tibble} of flows, with columns named "from" and "to", referring to ids of places and transitions. Both columns should be characters.}
 }
 \description{
 Several auxilliary functions for Petri Net objects.

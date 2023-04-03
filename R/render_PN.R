@@ -3,24 +3,32 @@
 
 #' @title Render Petri Net
 #'
-#' @description Function
+#' @description Visualize Petri Net with bipartite graph.
 #'
-#' @param PN A petri net
+#' @inheritParams flows
 #' @import DiagrammeR
 #' @export
 
 render_PN <- function(PN) {
 	node_id <- NULL
-
+	label <- NULL
 
 	nodes <- nodes(PN) %>%
 		mutate(node_id = 1:n()) %>%
-		mutate(color = ifelse(id %in% marking(PN), "red","blue"))
+		mutate(color = "blue")
+
+	if ("label" %in% names(nodes)) {
+		nodes <- nodes %>%
+			mutate(label = if_else(is.na(label), id, label))
+	} else {
+		nodes <- nodes %>%
+			mutate(label = id)
+	}
 
 	flows <- flows(PN)
 
 	create_node_df(n = n_nodes(PN),
-				   label = nodes$id,
+				   label = nodes$label,
 				   color = nodes$color,
 				   shape = ifelse(nodes$type == "place", "circle","rectangle")) -> node_df
 

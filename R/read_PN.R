@@ -1,57 +1,84 @@
 
 
-#' @title Read PNML
-#'
-#' @description Function
-#'
+#' @title Read .PNML file
 #' @param file Path to .pnml file
+#' @param add_final_marking \code{\link{logical}} (default: \code{TRUE}): add final marking. If \code{TRUE}, all places without outgoing flows are considered part of a single final marking. Overwrite with set_final_marking() if needed. If \code{FALSE}, final_marking is set to \code{NULL}
+
 #' @import xml2
 #' @import purrr
+#' @return A code{\link{marked_petrinet}}
+#'
 #' @export
 #'
 #'
-read_PN <- function(file) {
+read_PN <- function(file, add_final_marking = TRUE) {
 
-node <- NULL
-children <- NULL
-initial_marking <- NULL
-node_name <- NULL
-name <- NULL
+	node <- NULL
+	children <- NULL
+	initial_marking <- NULL
+	final_marking <- NULL
+	node_name <- NULL
+	target <- NULL
+	name <- NULL
 
-read_xml(file) %>%
-	xml_children() %>%
-	xml_children() -> t
+		read_xml(file) %>%
+			xml_child("net") %>%
+			xml_child("page") %>%
+			xml_children() -> t
 
-data_frame(node = t) %>%
-	mutate(children = map(node, xml_child, "initialMarking")) %>%
-	mutate(initial_marking = map(map(children, xml_child, "text"), xml_contents)) %>%
-	mutate(initial_marking = map(initial_marking, length) == 1) %>%
-	mutate(name = xml_name(node)) %>%
-	mutate(children = map(node, xml_child, "name")) %>%
-	mutate(node_name = map_chr(map(children, xml_child, "text"), xml_text))%>%
-	mutate(id = xml_attr(node, "id")) %>%
-	mutate(source = xml_attr(node, "source"),
-		   target = xml_attr(node, "target")) %>%
-	select(-node, -children) %>%
-	mutate(node_name = ifelse(node_name == "", id, node_name)) -> data
 
-data %>%
-	filter(name == "place") -> places
-data %>%
-	filter(name == "transition") -> transitions
+	tibble(name = xml_name(t),
+		   id = xml_attr(t, "id"),
+		   label = xml_child(t, "name") %>% xml_text(),
+		   initial_marking = xml_child(t, "initialMarking") %>% xml_text(),
+		   source = xml_attr(t, "source"),
+		   target = xml_attr(t, "target")) -> data
 
-nodes <- bind_rows(places, transitions) %>% select(id,node_name)
+	data %>%
+		filter(name == "arc") %>%
+		rename(from = source,
+			   to = target) %>%
+		select(-initial_marking, -label) -> flows
 
-data %>%
-	filter(name == "arc") %>%
-	select(-node_name) %>%
-	left_join(nodes, by = c("source"="id")) %>%
-	rename(from = node_name) %>%
-	left_join(nodes, by = c("target" = "id")) %>%
-	rename(to = node_name) -> flows
 
-create_PN(places = places$node_name,
-		  transitions = transitions$node_name,
-		  flows = flows,
-		  marking = places %>% filter(initial_marking) %>% pull(id))
+	data %>% filter(name == "place") %>% select(id, label, initial_marking) -> places
+	data %>% filter(name == "transition") %>% select(id, label) -> transitions
+
+	nodes <- bind_rows(places, transitions) %>% select(id, label)
+
+
+	#, nodes = nodes, flows = flows)
+
+	create_PN(places = places,
+			  transitions = transitions,
+			  flows = flows) -> PN
+
+	initial_marking <- places %>% filter(initial_marking == 1) %>% pull(id)
+
+	# final_marking
+	if (add_final_marking) {
+
+		# final_marking = any place_id not in arc_source
+		place_ids <- places %>% pull(id)
+		arc_sources <- data %>%
+			filter(name == "arc") %>%
+			pull(source)
+
+		final_marking <- setdiff(place_ids, arc_sources)
+
+
+	} else {
+		final_marking <- NULL
+	}
+	create_PN(places = places,
+			  transitions = transitions,
+			  flows = flows)
+
+	create_marked_PN(PN = PN, initial_marking = initial_marking, final_marking = final_marking)
 }
+
+
+
+
+
+
